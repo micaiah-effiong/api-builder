@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "jsx": "react-jsx",
+    "module": "commonjs",
+    "moduleDetection": "force",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noUncheckedSideEffectImports": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "esnext"
+  }
+}

@@ -1,3 +1,4 @@
+import { env } from "./env";
 import {
   Application,
   Router,
@@ -5,6 +6,7 @@ import {
   RequestHandler,
   ErrorRequestHandler,
 } from "express";
+import type { ServeStaticOptions } from "serve-static";
 import http from "http";
 import express from "express";
 import { openapi } from "./config/docs.config";
@@ -17,12 +19,14 @@ import cluster from "cluster";
 import { errorFromJson, errorToJson } from "./utils";
 import { logger } from "./logger";
 import morgan from "morgan";
+import path from "path";
+import fs from "fs";
 
 type Props = {
   docsPath?: string;
   docConfig?: SwaggerUIOptions | null;
   clusterSize?: number;
-  env: Record<string, any>;
+  env: NodeJS.ProcessEnv;
   config?: {
     cors?: cors.CorsOptions;
     helmet?: HelmetOptions;
@@ -52,12 +56,13 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
 
   shutdownHandler?: Function;
   initializer?: Function;
+  envValidator?: Function;
+
+  private staticDirs: Map<string, {}> = new Map();
 
   constructor(props: Omit<Props, "env"> = {}) {
     this.app = express();
-    this.opt = Object.assign({}, { env: { PORT: 3000 } }, props);
-    // this.apiRouter = Router();
-    // this.oapi = oapi()
+    this.opt = Object.assign({}, { env: { PORT: "3000" } }, props, { env });
   }
 
   getOpt() {
@@ -72,11 +77,17 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     this.app.use(express.urlencoded({ extended: true }));
     // todo: file upload
     // todo: serve file
-    // todo: cors
     // todo: rate limiting
-    //
     this.app.use(this.oapi.handle);
     this.setUpMiddlewares();
+  }
+
+  /**
+   * validator should throw error if it fails
+   */
+  addEnvValidator(validator: (env: Required<NodeJS.ProcessEnv>) => void) {
+    this.envValidator = validator;
+    return this;
   }
 
   private enableDocumentation() {
@@ -145,6 +156,17 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     return this;
   }
 
+  addStaticDir(folderPath: string, options?: ServeStaticOptions) {
+    const stats = fs.lstatSync(folderPath);
+
+    if (!stats.isDirectory()) {
+      throw new Error("Static path is not a directory");
+    }
+
+    this.staticDirs.set(folderPath, options ?? {});
+    return this;
+  }
+
   addApi(router: Router): Omit<CreateApplicationService<T>, "addApi"> {
     if (this.apiRouter) {
       throw new Error("Already added api router");
@@ -189,12 +211,17 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   build() {
+    this.envValidator?.(env);
     this.setUpApp();
     this.setUpMiddlewares();
     this.setUpApi();
 
     assert(this.apiRouter, "App API router should already be registered");
     // this.app.use(this.oapi);
+
+    this.staticDirs.forEach((options, folderPath) => {
+      this.app.use(express.static(folderPath, options));
+    });
 
     this.setUpFinalHandlers();
     return new CreateApplication(
@@ -228,9 +255,9 @@ class CreateApplication {
       size = os.availableParallelism();
     }
 
-    function errorListener(error: Error) {
-      console.error("ERROR", error);
-    }
+    const errorListener = (error: Error) => {
+      this.logger.error("ERROR", error);
+    };
 
     for (let i = 0; i < size; i++) {
       cluster.fork().on("error", errorListener);

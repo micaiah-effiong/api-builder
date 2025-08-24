@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import dotenv, { DotenvPopulateInput } from "dotenv";
 
 function getProcessEnvironmentFile() {
   if (!process.env.NODE_ENV) {
@@ -18,5 +18,8 @@ function getProcessEnvironmentFile() {
 //
 // const configEnv: EnvDto = parsed.data;
 
-export const env = {};
-dotenv.config({ path: getProcessEnvironmentFile(), processEnv: env });
+export const env = <Required<NodeJS.ProcessEnv>>{};
+dotenv.config({
+  path: getProcessEnvironmentFile(),
+  processEnv: <DotenvPopulateInput>env,
+});

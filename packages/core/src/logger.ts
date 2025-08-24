@@ -18,7 +18,7 @@ export class LoggerService {
   };
 
   logger: winston.Logger;
-  private env: Record<string, string> = env;
+  private env: Required<NodeJS.ProcessEnv> = env;
 
   constructor(private opt?: Props) {
     this.logger = {} as any;

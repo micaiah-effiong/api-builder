@@ -4,6 +4,7 @@ logger.add(new winston.transports.Console());
 import { apiRouter } from "./router";
 import { Request, Response, NextFunction } from "express";
 import winston from "winston";
+import path from "path";
 
 //
 function errorHandler(
@@ -12,7 +13,7 @@ function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  console.error(err);
+  logger.error(err.message, err);
   res
     .status(500)
     .json({ status: false, message: err.message || "Internal server error" });
@@ -23,13 +24,20 @@ function notFoundHandler(_: Request, res: Response) {
 }
 
 function shutdown() {
-  console.log("SHUTDOWN");
+  logger.info("SHUTDOWN");
 }
 
 function initializer() {
   // throw new Error("Not connecting to DB");
-  console.log("Connect DB", process.pid);
+  logger.info(`Connect DB, process pid: ${process.pid}`);
 }
+
+function envValidation(env: any) {
+  if (!("PORT" in env)) {
+    throw new Error("");
+  }
+}
+
 // index.ts
 const createApp = new CreateApplicationService({
   docConfig: {},
@@ -42,5 +50,7 @@ createApp
   .addErrorRequestHandler(errorHandler)
   .setShutdown(shutdown)
   .setInitializer(initializer)
+  .addEnvValidator(envValidation)
+  .addStaticDir(path.join(process.cwd(), "src", "public"))
   .build()
   .start();
