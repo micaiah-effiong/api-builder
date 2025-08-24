@@ -11,11 +11,31 @@ import { openapi } from "./config/docs.config";
 import assert from "assert";
 import type { SwaggerUIOptions } from "swagger-ui";
 import helmet, { HelmetOptions } from "helmet";
-import cors, { CorsRequest } from "cors";
+import cors from "cors";
+import os from "os";
+import cluster from "cluster";
+import { errorFromJson, errorToJson } from "./utils";
+import { logger } from "./logger";
+import morgan from "morgan";
 
 type Props = {
   docsPath?: string;
   docConfig?: SwaggerUIOptions | null;
+  clusterSize?: number;
+  env: Record<string, any>;
+  config?: {
+    cors?: cors.CorsOptions;
+    helmet?: HelmetOptions;
+  };
+};
+
+type WorkerEventType =
+  | "WORKER::INITIALIZER_ERROR"
+  | "WORKER::INITIALIZER_SUCCESS";
+
+type WorkerEventData = {
+  msg: any;
+  type: WorkerEventType;
 };
 
 export class CreateApplicationService<T extends keyof Express.Locals> {
@@ -25,16 +45,29 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   private middlewares: (NextFunction | RequestHandler)[] = [];
   private notFoundRouteHandler?: RequestHandler;
   private oapi = openapi;
+
+  // TODO: get port from env
+
   private opt?: Props;
 
-  constructor(props: Props = {}) {
+  shutdownHandler?: Function;
+  initializer?: Function;
+
+  constructor(props: Omit<Props, "env"> = {}) {
     this.app = express();
-    this.opt = props;
+    this.opt = Object.assign({}, { env: { PORT: 3000 } }, props);
     // this.apiRouter = Router();
     // this.oapi = oapi()
   }
 
+  getOpt() {
+    return this.opt;
+  }
+
   private setUpApp() {
+    this.app.use(helmet(this.opt?.config?.helmet));
+    this.app.use(cors(this.opt?.config?.cors));
+    this.app.use(morgan("combined"));
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     // todo: file upload
@@ -72,13 +105,6 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     );
 
     this.apiRouter.use(...this.oapi.use("/docs", docsRouter));
-  }
-
-  enableHelmet(options?: HelmetOptions) {
-    this.app.use(helmet(options));
-  }
-  enableCors(options?: cors.CorsOptions) {
-    this.app.use(cors(options));
   }
 
   private setUpApi() {
@@ -149,6 +175,19 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     return this;
   }
 
+  setShutdown(fn: () => void) {
+    this.shutdownHandler = fn;
+    return this;
+  }
+
+  /**
+   * function that must run before server starts
+   **/
+  setInitializer(fn: () => void) {
+    this.initializer = fn;
+    return this;
+  }
+
   build() {
     this.setUpApp();
     this.setUpMiddlewares();
@@ -158,7 +197,119 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     // this.app.use(this.oapi);
 
     this.setUpFinalHandlers();
-    return http.createServer(this.app);
+    return new CreateApplication(
+      http.createServer(this.app),
+      this.app,
+      this.opt?.clusterSize,
+      this,
+    );
+  }
+}
+
+class CreateApplication {
+  private logger = logger;
+  constructor(
+    private server: http.Server,
+    private app: Application,
+    private clusterSize: number = os.availableParallelism(),
+    private appService: CreateApplicationService<any>,
+  ) {}
+
+  getContext() {
+    return { app: this.app, server: this.server };
+  }
+
+  private createCluster() {
+    let size = this.clusterSize;
+
+    if (size <= 0) {
+      size = 1;
+    } else if (size === undefined || size === null) {
+      size = os.availableParallelism();
+    }
+
+    function errorListener(error: Error) {
+      console.error("ERROR", error);
+    }
+
+    for (let i = 0; i < size; i++) {
+      cluster.fork().on("error", errorListener);
+    }
+
+    cluster.on("exit", (worker, code, _signal) => {
+      if (code !== 0 && !worker.exitedAfterDisconnect) {
+        // did not exist properly
+        // something went wrong
+        cluster.fork().on("error", errorListener);
+      }
+    });
+  }
+
+  async start() {
+    const port = this.appService.getOpt()?.env.PORT;
+
+    if (!port) {
+      throw new Error("Port not specified");
+    }
+
+    if (cluster.isWorker) {
+      try {
+        await this.appService.initializer?.();
+        // TODO: add port to createApplicationService
+        this.server.listen(port, () => {
+          cluster.worker?.send(<WorkerEventData>{
+            type: "WORKER::INITIALIZER_SUCCESS",
+            msg: "Done",
+          });
+        });
+
+        process.on("SIGTERM", this.shutdown.bind(this));
+        process.on("SIGINT", this.shutdown.bind(this));
+        process.on("exit", this.shutdown.bind(this));
+        return;
+      } catch (error) {
+        cluster.worker?.send(<WorkerEventData>{
+          type: "WORKER::INITIALIZER_ERROR",
+          msg: errorToJson(<Error>error),
+        });
+      }
+    }
+
+    if (cluster.isPrimary && Number.isInteger(this.clusterSize)) {
+      this.createCluster();
+      cluster.on("message", (_w, data) => {
+        const { msg, type } = <WorkerEventData>data;
+        this.logger.log("Message received", { type });
+
+        if (type === "WORKER::INITIALIZER_ERROR") {
+          const err = errorFromJson(msg);
+
+          this.logger.error(err.message, err);
+          Object.values(cluster.workers ?? {}).forEach((w) => w?.kill());
+          process.exit(1);
+        }
+      });
+
+      this.logger.log(
+        `Server running on port ${port}. \nProcess ID: ${process.pid}`,
+      );
+
+      console.table(
+        Object.values(cluster.workers ?? {}).map((e) => {
+          return {
+            "Child process": e?.id,
+            id: e?.process.pid,
+          };
+        }),
+      );
+    }
+  }
+
+  private shutdown() {
+    this.server.close(async () => {
+      await this.appService.shutdownHandler?.();
+      process.exit(0);
+    });
   }
 }
 
