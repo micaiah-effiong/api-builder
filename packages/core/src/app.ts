@@ -19,7 +19,6 @@ import cluster from "cluster";
 import { errorFromJson, errorToJson } from "./utils";
 import { logger } from "./logger";
 import morgan from "morgan";
-import path from "path";
 import fs from "fs";
 
 type Props = {
@@ -60,8 +59,15 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
 
   private staticDirs: Map<string, {}> = new Map();
 
-  constructor(props: Omit<Props, "env"> = {}) {
-    this.app = express();
+  constructor(props: Omit<Props, "env">);
+  constructor(props: Omit<Props, "env">, app: Application);
+  constructor(props: Omit<Props, "env"> = {}, app?: Application) {
+    if (app) {
+      this.app = app;
+    } else {
+      this.app = express();
+    }
+
     this.opt = Object.assign({}, { env: { PORT: "3000" } }, props, { env });
   }
 
@@ -70,6 +76,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   private setUpApp() {
+    this.app.disable("x-powered-by");
     this.app.use(helmet(this.opt?.config?.helmet));
     this.app.use(cors(this.opt?.config?.cors));
     this.app.use(morgan("combined"));
@@ -197,6 +204,9 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     return this;
   }
 
+  /**
+   * function that must run when server closes
+   **/
   setShutdown(fn: () => void) {
     this.shutdownHandler = fn;
     return this;
@@ -215,9 +225,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     this.setUpApp();
     this.setUpMiddlewares();
     this.setUpApi();
-
     assert(this.apiRouter, "App API router should already be registered");
-    // this.app.use(this.oapi);
 
     this.staticDirs.forEach((options, folderPath) => {
       this.app.use(express.static(folderPath, options));

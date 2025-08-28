@@ -45,12 +45,12 @@ const createApp = new CreateApplicationService({
 });
 
 createApp
-  .addApi(apiRouter)
-  .addNotFoundHandler(notFoundHandler)
-  .addErrorRequestHandler(errorHandler)
   .setShutdown(shutdown)
   .setInitializer(initializer)
   .addEnvValidator(envValidation)
   .addStaticDir(path.join(process.cwd(), "src", "public"))
+  .addApi(apiRouter)
+  .addNotFoundHandler(notFoundHandler)
+  .addErrorRequestHandler(errorHandler)
   .build()
   .start();

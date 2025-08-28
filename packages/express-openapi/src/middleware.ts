@@ -58,7 +58,7 @@ export function ExpressOpenAPI(props: ExpressOpenAPIProps) {
     return serveSwaggerUI(docPath, options)
   }
 
-  function component<T extends keyof OpenAPIV3.ComponentsObject>(
+  function componentFn<T extends keyof OpenAPIV3.ComponentsObject>(
     type: T,
     name: string,
     description: GetComponentObject<OpenAPIV3.ComponentsObject, T>[string],
@@ -104,15 +104,16 @@ export function ExpressOpenAPI(props: ExpressOpenAPIProps) {
     return middleware
   }
 
-  const schemas = component.bind(null, 'schemas')
-  const response = component.bind(null, 'responses')
-  const parameters = component.bind(null, 'parameters')
-  const examples = component.bind(null, 'examples')
-  const requestBodies = component.bind(null, 'requestBodies')
-  const headers = component.bind(null, 'headers')
-  const securitySchemes = component.bind(null, 'securitySchemes')
-  const links = component.bind(null, 'links')
-  const callbacks = component.bind(null, 'callbacks')
+  const component = componentFn.bind(null)
+  const schemas = componentFn.bind(null, 'schemas')
+  const response = componentFn.bind(null, 'responses')
+  const parameters = componentFn.bind(null, 'parameters')
+  const examples = componentFn.bind(null, 'examples')
+  const requestBodies = componentFn.bind(null, 'requestBodies')
+  const headers = componentFn.bind(null, 'headers')
+  const securitySchemes = componentFn.bind(null, 'securitySchemes')
+  const links = componentFn.bind(null, 'links')
+  const callbacks = componentFn.bind(null, 'callbacks')
 
   // OpenAPI document as yaml
   // router.get([`${routePrefix}.yaml`, `${routePrefix}.yml`], (req, res) => {
@@ -129,6 +130,7 @@ export function ExpressOpenAPI(props: ExpressOpenAPIProps) {
 
   /** more end */
   return {
+    component,
     schemas,
     response,
     parameters,

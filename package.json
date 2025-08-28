@@ -1,6 +1,9 @@
 {
   "name": "node-server",
   "private": true,
+  "main": "./packages/core/dist/index.js",
+  "module": "./packages/core/dist/index.mjs",
+  "types": "./packages/core/dist/index.d.ts",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -25,9 +28,6 @@
     "packages/*"
   ],
   "dependencies": {
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "morgan": "^1.10.1",
-    "winston": "^3.17.0"
+    "express": "^5.1.0"
   }
 }
