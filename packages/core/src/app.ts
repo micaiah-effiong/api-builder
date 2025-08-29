@@ -10,7 +10,6 @@ import type { ServeStaticOptions } from "serve-static";
 import http from "http";
 import express from "express";
 import { openapi } from "./config/docs.config";
-import assert from "assert";
 import type { SwaggerUIOptions } from "swagger-ui";
 import helmet, { HelmetOptions } from "helmet";
 import cors from "cors";
@@ -58,12 +57,14 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   envValidator?: Function;
 
   private staticDirs: Map<string, {}> = new Map();
+  private isPredefinedApp: boolean = false;
 
   constructor(props: Omit<Props, "env">);
   constructor(props: Omit<Props, "env">, app: Application);
   constructor(props: Omit<Props, "env"> = {}, app?: Application) {
     if (app) {
       this.app = app;
+      this.isPredefinedApp = true;
     } else {
       this.app = express();
     }
@@ -76,12 +77,12 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   private setUpApp() {
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
     this.app.disable("x-powered-by");
     this.app.use(helmet(this.opt?.config?.helmet));
     this.app.use(cors(this.opt?.config?.cors));
     this.app.use(morgan("combined"));
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
     // todo: file upload
     // todo: serve file
     // todo: rate limiting
@@ -126,7 +127,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   private setUpApi() {
-    if (!this.apiRouter) {
+    if (!this.apiRouter && !this.isPredefinedApp) {
       throw new Error("Api router not created");
     }
 
@@ -134,7 +135,9 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
       this.enableDocumentation();
     }
 
-    this.app.use(...this.oapi.use("/api", this.apiRouter));
+    if (this.apiRouter) {
+      this.app.use(...this.oapi.use("/api", this.apiRouter));
+    }
   }
 
   private setUpMiddlewares() {
@@ -225,7 +228,6 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     this.setUpApp();
     this.setUpMiddlewares();
     this.setUpApi();
-    assert(this.apiRouter, "App API router should already be registered");
 
     this.staticDirs.forEach((options, folderPath) => {
       this.app.use(express.static(folderPath, options));
