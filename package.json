@@ -1,15 +1,16 @@
 {
   "name": "node-server",
   "private": true,
-  "main": "./packages/core/dist/index.js",
-  "module": "./packages/core/dist/index.mjs",
+  "version": "0.0.0",
+  "main": "./packages/core/dist/index.cjs",
+  "module": "./packages/core/dist/index.js",
   "types": "./packages/core/dist/index.d.ts",
   "scripts": {
     "build": "turbo run build",
+    "check-types": "turbo run check-types",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "lint": "turbo run lint"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
