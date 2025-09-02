@@ -13,7 +13,7 @@
     "tsx": "^4.20.3"
   },
   "dependencies": {
-    "@micaiah_effiong/core": "*",
+    "@micaiah_effiong/api-builder": "*",
     "@micaiah_effiong/typescript-config": "*"
   }
 }

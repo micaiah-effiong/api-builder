@@ -1,4 +1,4 @@
-import { CreateApplicationService, logger } from "@micaiah_effiong/core";
+import { CreateApplicationService, logger } from "@micaiah_effiong/api-builder";
 import express from "express";
 logger.add(new winston.transports.Console());
 

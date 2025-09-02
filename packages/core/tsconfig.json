@@ -6,7 +6,26 @@
     "esModuleInterop": true,
     "module": "commonjs",
     "moduleDetection": "force",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "lib": [
+      "es2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "sourceMap": true,
+    "exactOptionalPropertyTypes": true,
+    "jsx": "react-jsx",
+    "noImplicitAny": true,
+    "noUncheckedSideEffectImports": true
   },
   "include": [
     "src/**/*",

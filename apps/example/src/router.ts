@@ -1,4 +1,4 @@
-import { openapi } from "@micaiah_effiong/core";
+import { openapi } from "@micaiah_effiong/api-builder";
 import { Router } from "express";
 
 // router.ts

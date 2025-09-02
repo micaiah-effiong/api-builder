@@ -20,10 +20,12 @@ import { logger } from "./logger";
 import morgan from "morgan";
 import fs from "fs";
 
+type ClusterSize = number | "MAX";
+
 type Props = {
   docsPath?: string;
   docConfig?: SwaggerUIOptions | null;
-  clusterSize?: number;
+  clusterSize?: ClusterSize;
   env: NodeJS.ProcessEnv;
   config?: {
     cors?: cors.CorsOptions;
@@ -86,7 +88,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     // TODO: file upload
     // TODO: rate limiting
     // TODO: express websocket
-    this.app.use(this.oapi.handle);
+    this.app.use(this.oapi.handler);
     this.setUpMiddlewares();
   }
 
@@ -237,7 +239,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     return new CreateApplication(
       http.createServer(this.app),
       this.app,
-      this.opt?.clusterSize,
+      this.opt?.clusterSize || 1,
       this,
     );
   }
@@ -248,7 +250,7 @@ class CreateApplication {
   constructor(
     private server: http.Server,
     private app: Application,
-    private clusterSize: number = os.availableParallelism(),
+    private clusterSize: ClusterSize,
     private appService: CreateApplicationService<any>,
   ) {}
 
@@ -257,12 +259,14 @@ class CreateApplication {
   }
 
   private createCluster() {
-    let size = this.clusterSize;
+    let size;
 
-    if (size <= 0) {
-      size = 1;
-    } else if (size === undefined || size === null) {
+    if (this.clusterSize === "MAX") {
       size = os.availableParallelism();
+    } else if (this.clusterSize <= 0) {
+      size = 1;
+    } else {
+      size = this.clusterSize;
     }
 
     const errorListener = (error: Error) => {
@@ -349,11 +353,3 @@ class CreateApplication {
     });
   }
 }
-
-// const app = new CreateApplicationService({} as any);
-// app //
-//   .addService("otp", {} as any)
-//   .addMiddleware({} as any)
-//   .addApi({} as any)
-//   .build();
-// .addApi(Router());

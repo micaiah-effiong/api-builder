@@ -1,5 +1,5 @@
 {
-  "name": "@micaiah_effiong/core",
+  "name": "@micaiah_effiong/api-builder",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
+    "check-types": "tsc --noEmit",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "test": "jest"
   },
