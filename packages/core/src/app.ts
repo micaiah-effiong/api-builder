@@ -19,6 +19,7 @@ import { errorFromJson, errorToJson } from "./utils";
 import { logger } from "./logger";
 import morgan from "morgan";
 import fs from "fs";
+import winston from "winston";
 
 type ClusterSize = number | "MAX";
 
@@ -207,6 +208,10 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     }
     this.notFoundRouteHandler = notFoundHandler;
     return this;
+  }
+
+  addLoggerTransport(transport: winston.transport) {
+    logger.add(transport);
   }
 
   /**
