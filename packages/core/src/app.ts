@@ -16,7 +16,7 @@ import cors from "cors";
 import os from "os";
 import cluster from "cluster";
 import { errorFromJson, errorToJson } from "./utils";
-import { logger } from "./logger";
+import { logger, LoggerService } from "./logger";
 import morgan from "morgan";
 import fs from "fs";
 import winston from "winston";
@@ -28,6 +28,7 @@ type Props = {
   docConfig?: SwaggerUIOptions | null;
   clusterSize?: ClusterSize;
   env: NodeJS.ProcessEnv;
+  logger?: LoggerService;
   config?: {
     cors?: cors.CorsOptions;
     helmet?: HelmetOptions;
@@ -50,6 +51,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   private middlewares: (NextFunction | RequestHandler)[] = [];
   private notFoundRouteHandler?: RequestHandler;
   private oapi = openapi;
+  private logger: LoggerService;
 
   // TODO: get port from env
 
@@ -73,6 +75,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     }
 
     this.opt = Object.assign({}, { env: { PORT: "3000" } }, props, { env });
+    this.logger = this.opt?.logger || logger;
   }
 
   getOpt() {
@@ -211,7 +214,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   addLoggerTransport(transport: winston.transport) {
-    logger.add(transport);
+    this.logger.add(transport);
   }
 
   /**
@@ -228,6 +231,10 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   setInitializer(fn: () => void) {
     this.initializer = fn;
     return this;
+  }
+
+  get serviceLogger() {
+    return this.logger;
   }
 
   build() {
@@ -251,13 +258,15 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
 }
 
 class CreateApplication {
-  private logger = logger;
+  private logger: LoggerService;
   constructor(
     private server: http.Server,
     private app: Application,
     private clusterSize: ClusterSize,
     private appService: CreateApplicationService<any>,
-  ) {}
+  ) {
+    this.logger = this.appService.serviceLogger || logger;
+  }
 
   getContext() {
     return { app: this.app, server: this.server };
