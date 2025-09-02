@@ -20,6 +20,7 @@ import { logger, LoggerService } from "./logger";
 import morgan from "morgan";
 import fs from "fs";
 import winston from "winston";
+import { healthcheckRouter } from "./healthcheck";
 
 type ClusterSize = number | "MAX";
 
@@ -29,11 +30,13 @@ type Props = {
   clusterSize?: ClusterSize;
   env: NodeJS.ProcessEnv;
   logger?: LoggerService;
+  serviceName: string;
   config?: {
     cors?: cors.CorsOptions;
     helmet?: HelmetOptions;
   };
 };
+type ConstructorProps = Omit<Props, "env">;
 
 type WorkerEventType =
   | "WORKER::INITIALIZER_ERROR"
@@ -64,9 +67,12 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   private staticDirs: Map<string, {}> = new Map();
   private isPredefinedApp: boolean = false;
 
-  constructor(props: Omit<Props, "env">);
-  constructor(props: Omit<Props, "env">, app: Application);
-  constructor(props: Omit<Props, "env"> = {}, app?: Application) {
+  constructor(props: ConstructorProps);
+  constructor(props: ConstructorProps, app: Application);
+  constructor(
+    props: ConstructorProps = { serviceName: "express-app" },
+    app?: Application,
+  ) {
     if (app) {
       this.app = app;
       this.isPredefinedApp = true;
@@ -142,6 +148,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     }
 
     if (this.apiRouter) {
+      this.apiRouter.use(...this.oapi.use("/healthcheck", healthcheckRouter));
       this.app.use(...this.oapi.use("/api", this.apiRouter));
     }
   }

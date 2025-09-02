@@ -1,4 +1,7 @@
 import assert from "assert";
+import { OpenAPIV3 } from "openapi-types";
+import { ZodSchema } from "zod";
+import zt from "zod-to-json-schema";
 
 export function errorFromJson(json: any) {
   assert("message" in json, "Error should have message");
@@ -20,4 +23,10 @@ export function errorToJson(e: Error) {
     stack: e.stack,
     cause: e.cause,
   };
+}
+
+export function zodToJsonSchema(dto: ZodSchema<any>) {
+  return zt(dto, { name: "dto", target: "openApi3" })?.definitions?.[
+    "dto"
+  ] as OpenAPIV3.SchemaObject;
 }
