@@ -1,6 +1,7 @@
 {
   "name": "example",
   "version": "1.0.0",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts"
@@ -13,7 +14,6 @@
     "tsx": "^4.20.3"
   },
   "dependencies": {
-    "@micaiah_effiong/api-builder": "*",
-    "@micaiah_effiong/typescript-config": "*"
+    "@micaiah_effiong/api-builder": "*"
   }
 }
