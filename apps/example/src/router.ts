@@ -1,4 +1,4 @@
-import { openapi } from "@repo/core";
+import { openapi } from "@micaiah_effiong/core";
 import { Router } from "express";
 
 // router.ts
@@ -57,27 +57,25 @@ apiRouter.get(
   (_req, res) => res.json({ status: true }),
 );
 
-apiRouter.get(
-  "/error",
-  openapi.path({
-    responses: {
-      "200": {
-        description: "Error",
-        content: {
-          "application/json": {
-            example: {
-              status: true,
-              data: [],
-            },
+const tstdoc = openapi.path({
+  responses: {
+    "200": {
+      description: "Error",
+      content: {
+        "application/json": {
+          example: {
+            status: true,
+            data: [],
           },
         },
       },
     },
-  }),
-  (_, _res) => {
-    throw new Error("Test error");
   },
-);
+});
+
+apiRouter.get("/error", tstdoc, (_, _res) => {
+  throw new Error("Test error");
+});
 
 // apiRouter.use("/email", emailRouter);
 apiRouter.use(...openapi.use("/email", emailRouter));

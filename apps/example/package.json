@@ -13,6 +13,7 @@
     "tsx": "^4.20.3"
   },
   "dependencies": {
-    "@repo/core": "*"
+    "@micaiah_effiong/core": "*",
+    "@micaiah_effiong/typescript-config": "*"
   }
 }

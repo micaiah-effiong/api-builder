@@ -1,10 +1,7 @@
 {
-  "name": "node-server",
+  "name": "@micaiah_effiong/server-builder",
   "private": true,
   "version": "0.0.0",
-  "main": "./packages/core/dist/index.cjs",
-  "module": "./packages/core/dist/index.js",
-  "types": "./packages/core/dist/index.d.ts",
   "scripts": {
     "build": "turbo run build",
     "check-types": "turbo run check-types",

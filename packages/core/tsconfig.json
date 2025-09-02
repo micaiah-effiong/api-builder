@@ -1,13 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "@repo/typescript-config/core.json",
+  "extends": "@micaiah_effiong/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleDetection": "force",
+    "moduleResolution": "node"
   },
   "include": [
     "src/**/*",
-    "example/**/*"
+    "example/**/*",
+    "__tests__/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -83,9 +83,9 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
     this.app.use(helmet(this.opt?.config?.helmet));
     this.app.use(cors(this.opt?.config?.cors));
     this.app.use(morgan("combined"));
-    // todo: file upload
-    // todo: serve file
-    // todo: rate limiting
+    // TODO: file upload
+    // TODO: rate limiting
+    // TODO: express websocket
     this.app.use(this.oapi.handle);
     this.setUpMiddlewares();
   }

@@ -1,4 +1,5 @@
-import { CreateApplicationService, logger } from "@repo/core";
+import { CreateApplicationService, logger } from "@micaiah_effiong/core";
+import express from "express";
 logger.add(new winston.transports.Console());
 
 import { apiRouter } from "./router";
@@ -38,11 +39,21 @@ function envValidation(env: any) {
   }
 }
 
+const app = express();
+
 // index.ts
-const createApp = new CreateApplicationService({
-  docConfig: {},
-  clusterSize: 2,
-});
+const createApp = new CreateApplicationService(
+  {
+    docConfig: {},
+    clusterSize: 2,
+    config: {
+      cors: {},
+      helmet: {},
+    },
+    // docsPath: "", // WARN: empty string throws error
+  },
+  app,
+);
 
 createApp
   .setShutdown(shutdown)

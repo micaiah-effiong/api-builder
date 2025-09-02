@@ -1,4 +1,4 @@
-import { ExpressOpenAPI } from "@repo/express-openapi";
+import { ExpressOpenAPI } from "@micaiah_effiong/express-openapi";
 
 const description = "";
 const version = 1;
