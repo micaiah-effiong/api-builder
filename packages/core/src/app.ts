@@ -16,8 +16,7 @@ import cors from "cors";
 import os from "os";
 import cluster from "cluster";
 import { errorFromJson, errorToJson } from "./utils";
-import { logger, LoggerService } from "./logger";
-import morgan from "morgan";
+import { logger, LoggerService, loggerMiddleware } from "./module/logger";
 import fs from "fs";
 import winston from "winston";
 import { healthcheckRouter } from "./healthcheck";
@@ -82,6 +81,7 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
 
     this.opt = Object.assign({}, { env: { PORT: "3000" } }, props, { env });
     this.logger = this.opt?.logger || logger;
+    logger.logger = this.logger.logger;
   }
 
   getOpt() {
@@ -89,12 +89,13 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   }
 
   private setUpApp() {
+    this.app.use(loggerMiddleware);
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.disable("x-powered-by");
     this.app.use(helmet(this.opt?.config?.helmet));
     this.app.use(cors(this.opt?.config?.cors));
-    this.app.use(morgan("combined"));
+
     // TODO: file upload
     // TODO: rate limiting
     // TODO: express websocket
@@ -341,7 +342,7 @@ class CreateApplication {
       this.createCluster();
       cluster.on("message", (_w, data) => {
         const { msg, type } = <WorkerEventData>data;
-        this.logger.log("Message received", { type });
+        this.logger.info("Message received", { type });
 
         if (type === "WORKER::INITIALIZER_ERROR") {
           const err = errorFromJson(msg);
@@ -352,7 +353,7 @@ class CreateApplication {
         }
       });
 
-      this.logger.log(
+      this.logger.info(
         `Server running on port ${port}. \nProcess ID: ${process.pid}`,
       );
 

@@ -1,4 +1,8 @@
-import { CreateApplicationService, logger } from "@micaiah_effiong/api-builder";
+import {
+  CreateApplicationService,
+  logger,
+  LoggerService,
+} from "@micaiah_effiong/api-builder";
 import express from "express";
 logger.add(new winston.transports.Console());
 
@@ -50,6 +54,10 @@ const createApp = new CreateApplicationService(
       cors: {},
       helmet: {},
     },
+    serviceName: "example-app",
+    logger: new LoggerService({
+      // formatters: [winston.format.json()],
+    }),
     // docsPath: "", // WARN: empty string throws error
   },
   app,
