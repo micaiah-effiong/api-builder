@@ -55,8 +55,6 @@ export class CreateApplicationService<T extends keyof Express.Locals> {
   private oapi = openapi;
   private logger: LoggerService;
 
-  // TODO: get port from env
-
   private opt?: Props;
 
   shutdownHandler?: Function;
@@ -318,7 +316,6 @@ class CreateApplication {
     if (cluster.isWorker) {
       try {
         await this.appService.initializer?.();
-        // TODO: add port to createApplicationService
         this.server.listen(port, () => {
           cluster.worker?.send(<WorkerEventData>{
             type: "WORKER::INITIALIZER_SUCCESS",

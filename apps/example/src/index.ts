@@ -4,11 +4,8 @@ import {
   LoggerService,
 } from "@micaiah_effiong/api-builder";
 import express from "express";
-logger.add(new winston.transports.Console());
-
 import { apiRouter } from "./router";
 import { Request, Response, NextFunction } from "express";
-import winston from "winston";
 import path from "path";
 
 //
