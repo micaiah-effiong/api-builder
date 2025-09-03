@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "publish-packages": "turbo run build lint test && changeset version && changeset publish",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "publish-packages": "turbo run build lint test && changeset version && changeset publish",
+    "test": "turbo run test",
+    "release": "changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
