@@ -4,12 +4,12 @@ This repository provides simple framework for building Node.js APIs. It uses Tur
 
 ## Features
 
-- **Express Application Bootstrapping:**
-- **Clustering:**
-- **OpenAPI Documentation:**
-- **Custom Middleware:**
-- **Static File Serving:**
-- **Security & Logging:**
+- **Express Application Bootstrapping**
+- **Clustering**
+- **OpenAPI Documentation**
+- **Custom Middleware**
+- **Static File Serving**
+- **Security & Logging**
 
 ## Monorepo Structure
 
