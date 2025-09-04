@@ -11,8 +11,9 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
-    "lint": "tsc --noEmit",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "tsc --noEmit",
+    "prepare": "tsup src/index.ts --format cjs,esm --dts",
     "test": "jest"
   },
   "author": "",

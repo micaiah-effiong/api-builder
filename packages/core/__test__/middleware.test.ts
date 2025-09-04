@@ -219,10 +219,10 @@ describe("ExpressOpenAPI Middleware", () => {
 
       await supertest(app).get("/api/users").expect(200);
 
-      expect(openAPI.document.paths["/api/users/"]?.get?.summary).toBe(
+      expect(openAPI.document.paths["/api/users"]?.get?.summary).toBe(
         "List users",
       );
-      expect(openAPI.document.paths["/api/users/"]?.post?.summary).toBe(
+      expect(openAPI.document.paths["/api/users"]?.post?.summary).toBe(
         "Create user",
       );
     });
