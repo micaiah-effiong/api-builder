@@ -29,13 +29,13 @@ This package provides the core application setup for building scalable, robust N
 Install via npm:
 
 ```bash
-npm install @your-org/api-builder-core
+npm install @micaiah_effiong/api-builder
 ```
 
 ### Usage
 
 ```typescript
-import { CreateApplicationService } from "@your-org/api-builder-core";
+import { CreateApplicationService } from "@micaiah_effiong/api-builder";
 import express from "express";
 
 // Create your API router
