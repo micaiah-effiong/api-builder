@@ -21,7 +21,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Test Package
         run: npm test

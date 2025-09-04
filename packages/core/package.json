@@ -1,6 +1,6 @@
 {
   "name": "@micaiah_effiong/api-builder",
-  "version": "0.0.3",
+  "version": "0.0.4-beta.0",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
