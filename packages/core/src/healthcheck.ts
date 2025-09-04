@@ -7,18 +7,22 @@ export const healthcheckRouter = Router();
 
 const schema = zodToJsonSchema(
   z.object({
+    message: z.string().default("OK"),
+    timestamp: z
+      .date()
+      .transform((val) => val.getTime())
+      .pipe(z.number().default(Date.now())),
     uptime: z
       .number()
+      .default(process.uptime())
       .describe(
         "Number of seconds the current server process has been running.",
       ),
-    message: z.string(),
-    timestamp: z.date(),
   }),
 );
 
 healthcheckRouter.get(
-  "",
+  "/",
   openapi.path({
     responses: {
       200: {
